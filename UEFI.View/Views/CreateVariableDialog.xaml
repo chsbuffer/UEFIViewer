@@ -1,0 +1,54 @@
+﻿<ui:ContentDialog
+    x:Class="UEFI.View.Views.CreateVariableDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:UEFI.View.Views"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    mc:Ignorable="d"
+    PrimaryButtonText="Create"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    MinWidth="600"
+    d:DesignHeight="300"
+    d:DesignWidth="600">
+
+    <ui:SimpleStackPanel Spacing="10">
+        <ComboBox
+            x:Name="NamespaceComboBox"
+            ui:ControlHelper.Header="Namespace"
+            IsEditable="True"
+            ui:ControlHelper.PlaceholderText="{}{1801FBE3-AEF7-42A8-B1CD-FC4AFAE14716}"
+            HorizontalAlignment="Stretch" />
+        <Label
+            x:Name="NamespaceError"
+            Foreground="Red">
+        </Label>
+        <Label x:Name="NamespaceDefine" />
+        <TextBox
+            x:Name="VariableNameTextBox"
+            ui:ControlHelper.Header="Variable Name"
+            ui:ControlHelper.PlaceholderText="Foo">
+        </TextBox>
+        <Label
+            x:Name="NameError"
+            Foreground="Red">
+        </Label>
+        <TextBox
+            x:Name="ValueTextBox"
+            ui:ControlHelper.Header="Value"
+            ui:ControlHelper.PlaceholderText="x42 x61 x72"
+            ui:TextBoxHelper.IsDeleteButtonVisible="True" />
+        <Label
+            x:Name="ValueError"
+            Foreground="Red">
+        </Label>
+        <Label
+            x:Name="CreateError"
+            Foreground="Red" />
+        <Label
+            x:Name="ValuePreview" />
+    </ui:SimpleStackPanel>
+
+</ui:ContentDialog>
