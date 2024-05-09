@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Reactive;
+﻿using System.Reactive;
 using System.Reactive.Linq;
 
 using ReactiveUI;
@@ -17,6 +16,7 @@ namespace UEFI.View.ViewModels;
 public class CreateVariableDialogViewModel : ReactiveObject, IValidatableViewModel
 {
     private readonly UEFIVariableService _variableService;
+
     public CreateVariableDialogViewModel()
     {
         _variableService = DI.GetRequiredService<UEFIVariableService>();
@@ -38,6 +38,9 @@ public class CreateVariableDialogViewModel : ReactiveObject, IValidatableViewMod
                     try
                     {
                         Value = Util.HexString1ToBytes(s);
+                        if (!Value.Any())
+                            return new ValidationState(false, "Value must not be empty");
+
                         return ValidationState.Valid;
                     }
                     catch (Exception e)
@@ -59,7 +62,7 @@ public class CreateVariableDialogViewModel : ReactiveObject, IValidatableViewMod
         NamespaceStr = UefiNamespaces.TESTING;
     }
 
-    public ValidationContext ValidationContext { get; } = new();
+    public IValidationContext ValidationContext { get; } = new ValidationContext();
 
     [Reactive] public string NamespaceStr { get; private set; }
     [ObservableAsProperty] public string NamespaceDefine { get; } = "";

@@ -1,6 +1,6 @@
 ﻿using DynamicData;
 
-using UEFI.Utils;
+using UEFI.Models;
 using UEFI.View.Models;
 
 namespace UEFI.View.Services;
@@ -11,24 +11,31 @@ internal class UEFIVariableService
     private Dictionary<Guid, SourceList<UEFIVariableViewModel>> AllUefiVariables { get; set; } = null!;
 
     public IObservable<IChangeSet<Guid>> ConnectNamespace() => _namespaces.Connect();
-    public IObservable<IChangeSet<UEFIVariableViewModel>>? ConnectVariables(Guid namespaceGuid) => AllUefiVariables.GetValueOrDefault(namespaceGuid)?.Connect();
 
-    public async Task GetAndFillAllVariablesAsync()
+    public IObservable<IChangeSet<UEFIVariableViewModel>>? ConnectVariables(Guid namespaceGuid) =>
+        AllUefiVariables.GetValueOrDefault(namespaceGuid)?.Connect();
+
+    public void GetAndFillAllVariables()
     {
-        var uefiVariables = await Task.Run(Util.GetAllUEFIVariable);
+        var uefiVariables = new List<Variable>();
+        var enumable = EfiVariables.GetValues();
+        foreach (ref var variable in enumable)
+            uefiVariables.Add(new Variable(variable.VendorGuid, variable.Name, variable.Value.ToArray()));
+
         FillAllVariables(uefiVariables);
     }
 
-    private void FillAllVariables(Dictionary<Guid, List<string>> uefiVariables)
+    private void FillAllVariables(List<Variable> uefiVariables)
     {
         AllUefiVariables = uefiVariables
-            .Select(pair =>
+            .Select(x => new UEFIVariableViewModel(x))
+            .GroupBy(x => x.Namespace)
+            .ToDictionary(g => g.Key, g =>
             {
-                var sourceList = new SourceList<UEFIVariableViewModel>();
-                sourceList.AddRange(pair.Value.Select(name => new UEFIVariableViewModel(pair.Key, name)));
-                return new KeyValuePair<Guid, SourceList<UEFIVariableViewModel>>(pair.Key, sourceList);
-            })
-            .ToDictionary(x => x.Key, x => x.Value);
+                var l = new SourceList<UEFIVariableViewModel>();
+                l.AddRange(g);
+                return l;
+            });
 
         var remove = _namespaces.Items.Except(AllUefiVariables.Keys).ToList();
         var add = AllUefiVariables.Keys.Except(_namespaces.Items).ToList();
@@ -39,29 +46,36 @@ internal class UEFIVariableService
 
     public async Task RemoveVariableAsync(UEFIVariableViewModel variable)
     {
-        await Task.Run(() => Util.DeleteVariable(variable.NamespaceStr, variable.Name));
+        EfiVariables.Delete(variable.NamespaceStr, variable.Name);
 
-        var variables = AllUefiVariables[variable.Namespace];
-        variables.Remove(variable);
-        if (variables.Count == 0)
+        var list = AllUefiVariables[variable.Namespace];
+        list.Remove(variable);
+        if (list.Count == 0)
         {
             _namespaces.Remove(variable.Namespace);
             AllUefiVariables.Remove(variable.Namespace);
         }
     }
 
-    public async Task CreateVariableAsync(Guid namespaceGuid, string name, byte[] bytes)
+    public async Task CreateVariableAsync(Guid namespaceGuid, string name, byte[] value)
     {
-        await Task.Run(() => Util.SetVariableValue(namespaceGuid.ToString("B"), name, bytes));
+        EfiVariables.Set(namespaceGuid.ToString("B"), name, value);
+
         if (!AllUefiVariables.ContainsKey(namespaceGuid))
         {
             _namespaces.Add(namespaceGuid);
             AllUefiVariables.Add(namespaceGuid, new SourceList<UEFIVariableViewModel>());
         }
+
         var variable = AllUefiVariables[namespaceGuid].Items.FirstOrDefault(v => v.Name == name);
-        if (variable != null)
-            variable.Value = bytes;
+
+        if (variable == null)
+        {
+            AllUefiVariables[namespaceGuid].Add(new UEFIVariableViewModel(namespaceGuid, name, value));
+        }
         else
-            AllUefiVariables[namespaceGuid].Add(new UEFIVariableViewModel(namespaceGuid, name));
+        {
+            variable.Value = value;
+        }
     }
 }

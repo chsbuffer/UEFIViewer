@@ -16,7 +16,7 @@ namespace UEFI.View.Views
     {
         // https://docs.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font
         private const int Lock = 59182;
-        const int Unlock = 59269;
+        private const int Unlock = 59269;
 
         public MainWindow()
         {
@@ -46,7 +46,7 @@ namespace UEFI.View.Views
                     .SubscribeOn(RxApp.MainThreadScheduler)
                     .Subscribe(x =>
                     {
-                        VariableValueTextBox.Text = VariablesListView.SelectedItem is UEFIVariableViewModel uefiVariableVm ? uefiVariableVm.EditValue : "";
+                        VariableValueTextBox.Text = VariablesListView.SelectedItem is UEFIVariableViewModel uefiVariableVm ? uefiVariableVm.ReadableValue : "";
                     }).DisposeWith(d);
 
                 this.BindCommand(ViewModel,

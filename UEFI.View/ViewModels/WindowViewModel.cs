@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 using DynamicData;
@@ -31,7 +30,7 @@ namespace UEFI.View.ViewModels
                 .Bind(out _namespaces)
                 .Subscribe();
 
-            _ = _variableService.GetAndFillAllVariablesAsync();
+            _variableService.GetAndFillAllVariables();
 
             this.ToggleUnlockCommand = ReactiveCommand.Create(() => { Locked = !Locked; });
             this.AddVariableCommand = ReactiveCommand.Create(() =>
@@ -41,7 +40,7 @@ namespace UEFI.View.ViewModels
             });
             var canRemove = this.WhenAnyValue(x => x.EditingVariable).Select(x => x != null);
             this.RemoveVariableCommand = ReactiveCommand.CreateFromTask<UEFIVariableViewModel>(_variableService.RemoveVariableAsync, canRemove);
-            this.RefreshAllVariablesCommand = ReactiveCommand.CreateFromTask(_variableService.GetAndFillAllVariablesAsync);
+            this.RefreshAllVariablesCommand = ReactiveCommand.Create(_variableService.GetAndFillAllVariables);
 
             // ReSharper disable once InvokeAsExtensionMethod
             Observable.Merge(

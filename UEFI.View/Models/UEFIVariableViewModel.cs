@@ -1,15 +1,19 @@
 ﻿using System.Text;
 
-using Util = UEFI.Utils.Util;
+using UEFI.Models;
+
 using ViewUtil = UEFI.View.Utils.Util;
 
 namespace UEFI.View.Models;
 
-public record UEFIVariableViewModel : UefiVariable
+public class UEFIVariableViewModel : Variable
 {
-    public bool IsPrintableValue { get; private set; }
+    public string NamespaceStr => Namespace.ToString("B").ToUpper();
 
-    public string ReadableValue => IsPrintableValue ? Encoding.ASCII.GetString(Value) : ViewUtil.BytesToHexString(Value);
+    public bool IsPrintableValue => ViewUtil.IsPrintable(Value);
+
+    public string ReadableValue =>
+        IsPrintableValue ? Encoding.ASCII.GetString(Value) : ViewUtil.BytesToHexString(Value);
 
     public string EditValue
     {
@@ -20,12 +24,15 @@ public record UEFIVariableViewModel : UefiVariable
         set
         {
             var bytes = ViewUtil.HexString1ToBytes(value);
-            Util.SetVariableValue(NamespaceStr, Name, bytes);
+            EfiVariables.Set(NamespaceStr, Name, bytes);
         }
     }
 
-    public UEFIVariableViewModel(Guid namespaceGuid, string name) : base(namespaceGuid, name)
+    public UEFIVariableViewModel(Guid namespaceGuid, string name, byte[] value) : base(namespaceGuid, name, value)
     {
-        IsPrintableValue = ViewUtil.IsPrintable(Value);
+    }
+
+    public UEFIVariableViewModel(Variable variable) : base(variable.Namespace, variable.Name, variable.Value)
+    {
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 
+using DynamicData.Kernel;
+
 namespace UEFI.View.Utils;
 
 internal static class Util
@@ -20,10 +22,9 @@ internal static class Util
     }
 
     private static readonly char[] HexChars = "0123456789abcdefABCDEF".ToCharArray();
+
     public static byte[] HexString1ToBytes(string value)
     {
-        return Convert.FromHexString(new ReadOnlySpan<char>(
-            value.Replace("0x", "").Where(c => HexChars.Contains(c)).ToArray()
-        ));
+        return Convert.FromHexString(value.Replace("0x", "").Where(c => HexChars.Contains(c)).AsArray());
     }
 }

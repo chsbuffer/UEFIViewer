@@ -1,8 +1,10 @@
 ﻿WIN32_ERROR
 NTSTATUS
+// UNICODE_STRING
 
 GetFirmwareEnvironmentVariableW
 SetFirmwareEnvironmentVariableW
+SetFirmwareEnvironmentVariableExW
 
 AdjustTokenPrivileges
 OpenProcessToken
